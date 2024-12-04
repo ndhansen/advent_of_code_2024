@@ -12,6 +12,7 @@ dependencies = [
   "parse",
   "watchfiles",
   "rich",
+  "regex",
   "aoc @ {root:parent:uri}/advent_of_code_utils",
 ]
 
