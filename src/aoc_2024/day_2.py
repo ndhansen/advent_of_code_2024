@@ -56,6 +56,5 @@ def part_2(puzzle: PuzzleInput) -> Any:
     reports = parse_input(puzzle)
     total = 0
     for report in reports:
-        print(is_mostly_safe(report))
         total += is_mostly_safe(report)
     return total
