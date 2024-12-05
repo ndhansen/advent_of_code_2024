@@ -1,4 +1,4 @@
-from collections import defaultdict, deque
+from collections import defaultdict
 from typing import Any
 
 from aoc.puzzle import PuzzleInput
@@ -27,18 +27,6 @@ def get_updates(puzzle: PuzzleInput) -> list[list[int]]:
     return rules
 
 
-def is_path(graph: dict[int, set[int]], start: int, to: int, others: set[int]) -> bool:
-    frontier = deque([start])
-    while frontier:
-        current = frontier.popleft()
-        if current in others:
-            return False
-        if to in graph[current]:
-            return True
-        frontier.extendleft(list(graph[current]))
-    return False
-
-
 def process_updates(graph: dict[int, set[int]], rules: list[list[int]]) -> int:
     total = 0
     i = 0
@@ -57,7 +45,6 @@ def process_update(graph: dict[int, set[int]], rule: list[int]) -> int | None:
             current_idx = rule.index(current)
             for prior in priors:
                 if prior in rule and rule.index(prior) > current_idx:
-                    print(f"node {prior} can't come after {current} in the rule {rule}")
                     return None
     return rule[len(rule) // 2]
 
@@ -67,9 +54,6 @@ def maybe_reorder(current: int, priors: set[int], rule: list[int]) -> list[int] 
         current_idx = rule.index(current)
         for prior in priors:
             if prior in rule and rule.index(prior) < current_idx:
-                print(
-                    f"node {prior} can't come after {current} in the rule {rule}, reordering"
-                )
                 rule = rule.copy()
                 rule.remove(current)
                 prior_idx = rule.index(prior)
@@ -94,11 +78,6 @@ def process_update_2(graph: dict[int, set[int]], rule: list[int]) -> int:
 
 def part_1(puzzle: PuzzleInput) -> Any:
     graph = get_graph(puzzle)
-    # netgraphlist = {x: list(y) for x, y in graph.items()}
-    # netgraph = nx.from_dict_of_lists(netgraphlist).to_directed()
-    # print(nx.find_cycle(netgraph))
-    # A = nx.nx_agraph.to_agraph(netgraph)
-    # A.write("test.dot")
     rules = get_updates(puzzle)
     return process_updates(graph, rules)
 
