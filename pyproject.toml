@@ -17,7 +17,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pudb", "bpython", "mypy", "ruff", "ipython"]
+dev = ["pudb", "bpython", "mypy", "ruff", "ipython", "pygraphviz", "networkx"]
 
 [project.entry-points.aoc]
 base = "aoc_2024"
