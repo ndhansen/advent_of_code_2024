@@ -79,7 +79,7 @@ def take_step(
     guard: tuple[Coord, Direction],
     path: set[tuple[Coord, Direction]],
 ) -> tuple[bool, tuple[Coord, Direction]]:
-    new_guard_pos = guard[0].move(guard[1])
+    new_guard_pos = guard[0] + guard[1]
     if out_of_bounds(new_guard_pos, puzzle):
         return True, (new_guard_pos, guard[1])
 

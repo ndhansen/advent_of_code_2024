@@ -1,6 +1,8 @@
+import contextlib
 from collections import defaultdict
 from typing import Any
 
+import networkx as nx
 from aoc.puzzle import PuzzleInput
 
 
@@ -13,6 +15,55 @@ def get_graph(puzzle: PuzzleInput) -> dict[int, set[int]]:
         left, right = int(left_str), int(right_str)
         graph[right].add(left)
     return graph
+
+
+def get_netgraph(puzzle: PuzzleInput) -> nx.DiGraph:
+    edges = []
+    for line in puzzle.lines:
+        if line.strip() == "":
+            break
+        left_str, right_str = line.split("|")
+        left, right = int(left_str), int(right_str)
+        edges.append((left, right))
+
+    return nx.DiGraph(edges)
+
+
+def remove_other_nodes(graph: nx.DiGraph, retained_nodes: set[int]) -> nx.DiGraph:
+    local_graph = graph.copy()
+    other_nodes = set(local_graph.nodes.keys()) - retained_nodes
+    for other_node in other_nodes:
+        for in_src, _ in local_graph.in_edges(other_node):
+            for _, out_dst in local_graph.out_edges(other_node):
+                local_graph.add_edge(in_src, out_dst)
+
+        local_graph.remove_node(other_node)
+
+    to_remove = []
+    for a, b in local_graph.edges():
+        if a == b:
+            to_remove.append(a)
+    for node in to_remove:
+        local_graph.remove_edge(node, node)
+
+    return local_graph
+
+
+def check_valid(graph: nx.DiGraph, page_sets: list[list[int]]) -> None:
+    for pages in page_sets:
+        smallgraph = remove_other_nodes(graph, set(pages))
+        with contextlib.suppress(nx.NetworkXNoCycle):
+            if nx.find_cycle(smallgraph):
+                import pudb
+
+                pudb.set_trace()
+                msg = "Cycle found, this might not work."
+                raise ValueError(msg)
+        path = list(nx.algorithms.topological_sort(smallgraph))
+        print(path)
+        nx.drawing.nx_agraph.write_dot(
+            smallgraph, path="src/aoc_2024/inputs/day_5/test.dot"
+        )
 
 
 def get_updates(puzzle: PuzzleInput) -> list[list[int]]:
@@ -77,16 +128,18 @@ def process_update_2(graph: dict[int, set[int]], rule: list[int]) -> int:
 
 
 def part_1(puzzle: PuzzleInput) -> Any:
+    netgraph = get_netgraph(puzzle)
     graph = get_graph(puzzle)
     rules = get_updates(puzzle)
+    check_valid(netgraph, rules)
     return process_updates(graph, rules)
 
 
 def part_2(puzzle: PuzzleInput) -> Any:
     graph = get_graph(puzzle)
     rules = get_updates(puzzle)
-    wrong_rules = []
-    for rule in rules:
-        if process_update(graph, rule) is None:
-            wrong_rules.append(rule)
-    return process_updates_2(graph, wrong_rules)
+    # wrong_rules = []
+    # for rule in rules:
+    #     if process_update(graph, rule) is None:
+    #         wrong_rules.append(rule)
+    # return process_updates_2(graph, wrong_rules)
