@@ -18,15 +18,21 @@ def get_size(puzzle: PuzzleInput) -> Coord:
     return Coord(row=len(puzzle.lines), col=len(puzzle.lines[0]))
 
 
-def get_antinodes(grid: dict[str, set[Coord]], size: Coord) -> int:
-    all_antinodes: list[Coord] = []
+def get_antinodes(
+    grid: dict[str, set[Coord]], size: Coord, part_2: bool = False
+) -> int:
+    all_antinodes: set[Coord] = set()
     for char in grid.keys():
         for first, second in itertools.combinations(grid[char], 2):
             diff = first - second
-            all_antinodes.append(first + diff)
-            all_antinodes.append(second - diff)
+            if part_2 is True:
+                for i in range(size.row):
+                    all_antinodes.add(first + (diff * i))
+                    all_antinodes.add(second - (diff * i))
+            else:
+                all_antinodes.add(first + diff)
+                all_antinodes.add(second - diff)
 
-    print(all_antinodes)
     in_bound_antinodes = []
     for node in all_antinodes:
         if (
@@ -37,19 +43,7 @@ def get_antinodes(grid: dict[str, set[Coord]], size: Coord) -> int:
         ):
             in_bound_antinodes.append(node)
 
-    print(in_bound_antinodes)
-    show(in_bound_antinodes, size)
     return len(set(in_bound_antinodes))
-
-
-def show(nodes: list[Coord], size: Coord):
-    for row in range(size.row):
-        for col in range(size.col):
-            if Coord(row, col) in nodes:
-                print("#", end="")
-            else:
-                print(".", end="")
-        print()
 
 
 def part_1(puzzle: PuzzleInput) -> Any:
@@ -59,4 +53,6 @@ def part_1(puzzle: PuzzleInput) -> Any:
 
 
 def part_2(puzzle: PuzzleInput) -> Any:
-    pass
+    grid = parse_puzzle(puzzle)
+    size = get_size(puzzle)
+    return get_antinodes(grid, size, part_2=True)
