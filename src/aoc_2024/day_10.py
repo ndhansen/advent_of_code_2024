@@ -1,3 +1,4 @@
+from collections import defaultdict
 from functools import cache
 from typing import Any
 
@@ -22,14 +23,16 @@ def parse_puzzle(puzzle: PuzzleInput) -> tuple[dict[Coord, int], list[Coord]]:
 
 
 def count_ends(start: Coord, topo: frozendict[Coord, int]):
-    seen = set()
+    seen: dict[Coord, int] = defaultdict(int)
+    seen2 = set()
 
     @cache
-    def num_trails(start: Coord, topo: frozendict[Coord, int]) -> frozenset[Coord]:
+    def num_trails(start: Coord, topo: frozendict[Coord, int]) -> int:
         if topo[start] == 9:
-            return frozenset([start])
+            seen[start] = 1
+            return 1
 
-        ends = []
+        total = 0
         for direction in [
             Direction.NORTH,
             Direction.SOUTH,
@@ -38,20 +41,22 @@ def count_ends(start: Coord, topo: frozendict[Coord, int]):
         ]:
             next = start + direction
             if next in seen:
+                total += seen[next]
                 continue
             if next not in topo:
                 continue
             if topo[start] - topo[next] == -1:
-                seen.add(next)
-                next_heads = num_trails(next, topo)
-                for h in next_heads:
-                    ends.append(h)
+                total += num_trails(next, topo)
 
-        return frozenset(ends)
+        seen[start] = total
+        return total
 
-    found = len(num_trails(start, topo))
-    print(f"{start}: found {found}")
-    return found
+    found = num_trails(start, topo)
+    print(f"{start}: found {seen[start]}")
+    import pudb
+
+    pudb.set_trace()
+    return seen[start]
 
 
 def part_1(puzzle: PuzzleInput) -> Any:
@@ -68,4 +73,5 @@ def part_1(puzzle: PuzzleInput) -> Any:
 
 
 def part_2(puzzle: PuzzleInput) -> Any:
+    # 3618 too high
     pass
