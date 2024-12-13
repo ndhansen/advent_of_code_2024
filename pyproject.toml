@@ -26,6 +26,7 @@ dev = [
   "pygraphviz",
   "networkx",
   "tqdm",
+  "sympy",
 ]
 
 [project.entry-points.aoc]
