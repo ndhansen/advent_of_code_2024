@@ -74,7 +74,7 @@ def christmas(robots: list[Robot], steps: int, test: bool) -> None:
         get_safety_score(robots, i, test)
 
 
-def christmas_2(robots: list[Robot], test: bool) -> None:
+def christmas_2(robots: list[Robot], test: bool) -> int:
     hashes = []
     for steps in tqdm(range(10403)):
         map_size = Coord(103, 101)
@@ -112,80 +112,13 @@ def christmas_2(robots: list[Robot], test: bool) -> None:
                     neighbors += 1
                     break
 
-        print(neighbors)
-
         if neighbors > 350:
             print("Maybe found match at", steps)
             display(robot_pos, map_size)
             return steps
 
-    # flood_fill = 1
-    # frontier = [Coord(1, 1)]
-    # seen = set(frontier)
-    # while frontier:
-    #     current = frontier.pop()
-    #     for direction in [
-    #         Direction.NORTH,
-    #         Direction.SOUTH,
-    #         Direction.EAST,
-    #         Direction.WEST,
-    #     ]:
-    #         neighbor = current + direction
-    #         if (
-    #             neighbor.col < 0
-    #             or neighbor.row < 0
-    #             or neighbor.row >= map_size.row
-    #             or neighbor.col >= map_size.col
-    #         ):
-    #             continue
-    #         if neighbor not in points and neighbor not in seen:
-    #             flood_fill += 1
-    #             frontier.append(neighbor)
-    #             seen.add(neighbor)
-    # print(flood_fill)
-    # print("Maybe found match at", steps)
-    # display(robot_pos, map_size)
-    # if flood_fill in (9904, 9944, 9947, 9941, 9943):
-    #     print("Maybe found match at", steps)
-    #     display(robot_pos, map_size)
-    # for k, v in distribution.items():
-    #     print(k, ":", v)
-
-    # neighbors = 0
-    # for robot in robot_pos:
-    #     for diagonal in [Coord(1, 1), Coord(-1, -1)]:
-    #         if robot + diagonal in points:
-    #             neighbors += 1
-    #
-    # if neighbors > 40:
-    #     print("Maybe found match at", steps)
-    #     display(robot_pos, map_size)
-
-    # twos = 0
-    # for row in range(1, 80):
-    #     total = 0
-    #     for col in range(0, map_size.col):
-    #         current = Coord(row, col)
-    #         if current in points:
-    #             total += 1
-    #     if total == 2:
-    #         twos += 1
-    #
-    # if twos > 20:
-    #     print("Maybe found match at", steps)
-    #     display(robot_pos, map_size)
-
-    # center_radius = 5
-    # center_total = 0
-    # for robot in robot_pos:
-    #     if (
-    #         abs((map_size.row // 2) - robot.row) < center_radius
-    #         and abs((map_size.col // 2) - robot.col) < center_radius
-    #     ):
-    #         center_total += 1
-    # if center_total > 15:
-    #     print("Maybe found match at", steps)
-    #     display(robot_pos, map_size)
+    msg = "No solution found"
+    raise ValueError(msg)
 
 
 def part_1(puzzle: PuzzleInput) -> Any:
