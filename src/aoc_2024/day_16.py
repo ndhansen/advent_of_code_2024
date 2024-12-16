@@ -1,13 +1,13 @@
 import heapq
-import itertools
 import math
-from collections import defaultdict, deque
+from collections import defaultdict
 from collections.abc import Iterator, Mapping
-from typing import Any, NamedTuple, Protocol
+from typing import Any, Protocol
 
 from aoc.datatypes import Coord, Direction
 from aoc.exceptions import UnsolveableError
 from aoc.puzzle import PuzzleInput
+from tqdm import tqdm
 
 
 class Heuristic[T](Protocol):
@@ -138,203 +138,25 @@ def part_1(puzzle: PuzzleInput) -> Any:
     return int(cost)
 
 
-# def find_all_fastest(maze: set[Coord], start: Coord, end: Coord) -> int:
-#     rh = ReindeerHeuristic()
-#     rc = ReindeerCost()
-#     rn = ReindeerNeighbors(maze)
-#     path, cost = a_star(start, end, rh, rc, rn)
-#     seen = set(path)
-#     to_check = set(path[1:-1])
-#     # for i in tqdm(range(1, len(path) - 1)):
-#     checked = set()
-#     while to_check:
-#         current = to_check.pop()
-#         if current == Coord(11, 4):
-#             print("Got it.")
-#         checked.add(current)
-#         new_maze = maze.copy()
-#         new_maze.add(current)
-#         rn = ReindeerNeighbors(new_maze)
-#         try:
-#             new_path, new_cost = a_star(start, end, rh, rc, rn)
-#         except UnsolveableError:
-#             continue
-#
-#         if new_cost != cost:
-#             continue
-#
-#         diff = set(new_path) - checked
-#         to_check.update(diff)
-#         seen.update(new_path)
-#
-#     print(seen)
-#     for row in range(15):
-#         for col in range(15):
-#             current = Coord(row, col)
-#             if current in maze:
-#                 print("#", end="")
-#             elif current in seen:
-#                 print("O", end="")
-#             else:
-#                 print(".", end="")
-#         print()
-#     return len(seen)
-
-
-class _SearchPath[S](NamedTuple):
-    path: list[S]
-    cost: int
-
-    @property
-    def current(self) -> S:
-        return self.path[-1]
-
-
-def breadth_first_search(
-    *,
-    start: Coord,
-    goal: Coord,
-    next_func: Neighbors,
-    max_depth: int,
-    max_cost: int,
-) -> list[tuple[list[Coord], int]]:
-    start_path = _SearchPath([start], 0)
-    frontier = deque([start_path])
-    # seen = set()
-    solutions = []
-    greatest_depth = 0
-    while frontier:
-        current_path = frontier.popleft()
-        if current_path.cost > greatest_depth:
-            greatest_depth = current_path.cost
-            print(greatest_depth)
-
-        if len(current_path.path) > max_depth:
-            continue
-        if current_path.current == goal:
-            solutions.append((current_path.path, current_path.cost))
-            continue
-        # if current_path.current in seen:
-        #     continue
-        # seen.add(current_path.current)
-
-        for next_node in next_func(
-            current_path.current,
-            # paths={t: s for s, t in itertools.pairwise(current_path.path)},
-            paths=frozenset(current_path.path),
-            # paths={},
-        ):
-            frontier.append(
-                _SearchPath(
-                    [*current_path.path, next_node],
-                    current_path.cost + 1,
-                ),
-            )
-
-        if len(frontier) > 10000:
-            print("Culling at length:", len(frontier))
-            # Culling
-            for i in range(len(frontier)):
-                if get_cost(frontier[i].path) > max_cost:
-                    frontier.remove(frontier[i])
-
-    return solutions
-
-
-def get_cost(path: list[Coord]) -> int:
-    direction = Coord(0, 1)
-    cost = 0
-    for a, b in itertools.pairwise(path):
-        new_direction = b - a
-        if new_direction != direction:
-            cost += 1001
-        else:
-            cost += 1
-        direction = new_direction
-    return cost
-
-
-def part_2s(puzzle: PuzzleInput) -> Any:
-    maze, start, end = parse(puzzle)
+def find_all_fastest_wrong(maze: set[Coord], start: Coord, end: Coord) -> int:
     rh = ReindeerHeuristic()
     rc = ReindeerCost()
     rn = ReindeerNeighbors(maze)
-    path, expected_cost = a_star(start, end, rh, rc, rn)
-    sols = breadth_first_search(
-        start=start,
-        goal=end,
-        next_func=rn,
-        max_depth=len(path) + 1,
-        max_cost=int(expected_cost),
-    )
-    all_fields = set()
-    for sol_path, _ in sols:
-        if get_cost(sol_path) != expected_cost:
-            continue
-        all_fields.update(set(sol_path))
-    return len(all_fields)
-
-
-def get_elbows(path: list[Coord]) -> set[Coord]:
-    elbows = set()
-    for i in range(len(path) - 2):
-        a, b, c = path[i], path[i + 1], path[i + 2]
-        if b - a != c - b:
-            elbows.add(b)
-    return elbows
-
-
-def find_all_fastest(maze: set[Coord], start: Coord, end: Coord) -> int:
-    rh = ReindeerHeuristic()
-    rc = ReindeerCost()
-    rn = ReindeerNeighbors(maze)
-    path, expected_cost = a_star(start, end, rh, rc, rn)
+    path, cost = a_star(start, end, rh, rc, rn)
     seen = set(path)
-    elbows = get_elbows(path)
-    impossibles = set()
-    i = 1
-    while True:
-        success = []
-        new_elbows = set()
-        for combination in itertools.combinations(elbows, i):
-            skip = False
-            for impossible in impossibles:
-                if impossible.issubset(set(combination)):
-                    success.append(False)
-                    skip = True
-            if skip is True:
-                continue
+    for i in tqdm(range(1, len(path) - 1)):
+        new_maze = maze.copy()
+        new_maze.add(path[i])
+        rn = ReindeerNeighbors(new_maze)
+        try:
+            new_path, new_cost = a_star(start, end, rh, rc, rn)
+        except UnsolveableError:
+            continue
 
-            new_maze = maze.copy()
-            for combo in combination:
-                new_maze.add(combo)
+        if new_cost != cost:
+            continue
 
-            rn = ReindeerNeighbors(new_maze)
-            try:
-                print("Trying: ", combination)
-                path, cost = a_star(start, end, rh, rc, rn)
-            except UnsolveableError:
-                success.append(False)
-                impossibles.add(frozenset(combination))
-                continue
-
-            if cost != expected_cost:
-                success.append(False)
-                impossibles.add(frozenset(combination))
-                continue
-
-            new_elbows.update(get_elbows(path))
-            seen.update(set(path))
-            success.append(True)
-
-        if not any(success):
-            break
-
-        if elbows == elbows.union(new_elbows):
-            i += 1
-        else:
-            elbows.update(new_elbows)
-
+        seen.update(new_path)
     for row in range(15):
         for col in range(15):
             current = Coord(row, col)
@@ -344,13 +166,12 @@ def find_all_fastest(maze: set[Coord], start: Coord, end: Coord) -> int:
                 print("O", end="")
             else:
                 print(".", end="")
-        print()
     return len(seen)
 
 
-def part_2ss(puzzle: PuzzleInput) -> Any:
+def part_2_alt(puzzle: PuzzleInput) -> Any:
     maze, start, end = parse(puzzle)
-    return find_all_fastest(maze, start, end)
+    return find_all_fastest_wrong(maze, start, end)
 
 
 def bfs(maze: set[Coord], start: Coord, end: Coord, target_cost: int) -> int:
