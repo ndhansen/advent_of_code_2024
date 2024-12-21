@@ -127,66 +127,59 @@ def precomputed_paths(
     return paths
 
 
-def process_code(code: list[str], robots: int) -> list[str]:
-    keypad_paths = precomputed_paths(DOOR_KEYPAD)
-    instructions = []
-    for start, goal in itertools.pairwise(["A", *code]):
-        instructions.append(keypad_paths[(start, goal)])
+DOOR_PATHS = precomputed_paths(DOOR_KEYPAD)
+ROBOT_PATHS = precomputed_paths(ROBOT_KEYPAD)
+
+
+@cache
+def path(depth: int, a: str, b: str) -> int:
+    if a == b:
+        return 1
+    if depth <= 0:
+        return len(ROBOT_PATHS[(a, b)][0])
+
+    costs = []
+    for r_path in ROBOT_PATHS[(a, b)]:
+        cur_cost = 0
+        for x, y in itertools.pairwise(["A", *r_path]):
+            cur_cost += path(depth - 1, x, y)
+        costs.append(cur_cost)
+    return min(costs)
+
+
+def get_cost(code: str, robots: int) -> int:
+    instructions_temp = []
+    for start, goal in itertools.pairwise(["A", *list(code)]):
+        instructions_temp.append(DOOR_PATHS[(start, goal)])
 
     possibles = []
-    possibles_all = list(itertools.product(*instructions))
+    possibles_all = list(itertools.product(*instructions_temp))
     for p_a in possibles_all:
         possibles.append(list(itertools.chain(*p_a)))
+    instructions = possibles
 
-    robot_paths = precomputed_paths(ROBOT_KEYPAD)
-    for _ in range(robots):
-        new_possibles = []
-        for possible in possibles:
-            temp = []
-            for start, goal in itertools.pairwise(["A", *possible]):
-                temp.append(robot_paths[(start, goal)])
-
-            temp_all = list(itertools.product(*temp))
-            for t_a in temp_all:
-                new_possibles.append(list(itertools.chain(*t_a)))
-
-        # possibles = list(itertools.product(*new_possibles))
-        new_possibles.sort(key=len)
-        shortest = len(new_possibles[0])
-        i = len(new_possibles) - 1
-        while i > 0:
-            if len(new_possibles[i]) > shortest:
-                new_possibles.pop(i)
-            i -= 1
-
-        # import pudb
-        #
-        # pudb.set_trace()
-
-        possibles = new_possibles
-
-    return possibles[0]
+    sums = []
+    for instruction in instructions:
+        cur_cost = 0
+        for start, goal in itertools.pairwise(["A", *instruction]):
+            cur_cost += path(depth=robots, a=start, b=goal)
+        sums.append(cur_cost)
+    return min(sums)
 
 
-def calc_score(code: str, path: list[str]) -> int:
-    val_str = "".join([char for char in code if char.isnumeric()])
-    val = int(val_str)
-    return val * len(path)
+def calc_score(codes: list[str], robots: int) -> int:
+    total = 0
+    for code in codes:
+        cost = get_cost(code, robots=robots)
+        val_str = "".join([char for char in code if char.isnumeric()])
+        val = int(val_str)
+        total += val * cost
+    return total
 
 
 def part_1(puzzle: PuzzleInput) -> Any:
-    total = 0
-    for line in puzzle.lines:
-        path = process_code(list(line), robots=2)
-        print(line, ":", "".join(path), len(path))
-        total += calc_score(line, path)
-    return total
+    return calc_score(puzzle.lines, robots=1)
 
 
 def part_2(puzzle: PuzzleInput) -> Any:
-    total = 0
-    for line in puzzle.lines:
-        path = process_code(list(line), robots=25)
-        print(line, ":", "".join(path), len(path))
-        total += calc_score(line, path)
-    return total
+    return calc_score(puzzle.lines, robots=24)
