@@ -104,18 +104,6 @@ def part_1(puzzle: PuzzleInput) -> Any:
     return simulate(inputs, gates, gatemap)
 
 
-def set_inputs(inputs: dict[str, bool]) -> None:
-    # Try with a lot of zeroes
-    for x in inputs:
-        if x.startswith("x"):
-            inputs[x] = False
-        else:
-            inputs[x] = True
-
-    # inputs["x44"] = True
-    # inputs["x44"] = True
-
-
 def swap_by_output(a: str, b: str, gates: list[Gate]) -> None:
     a_gate = None
     b_gate = None
@@ -128,20 +116,6 @@ def swap_by_output(a: str, b: str, gates: list[Gate]) -> None:
         raise ValueError
 
     a_gate.out, b_gate.out = b_gate.out, a_gate.out
-    # set_inputs(inputs)
-    # score = simulate(inputs, gates, gatemap)
-    # ones = bin(score)[2:].count("1")
-    # gate_outputs = [x.out.gatename for x in gates]
-    # for g1, g2 in tqdm(list(itertools.combinations(gate_outputs, 2))):
-    #     # Swap them
-    #     inputs, gates, gatemap = parse(puzzle)
-    #     swap_by_output(g1, g2, gates)
-    #     set_inputs(inputs)
-    #     score = simulate(inputs, gates, gatemap)
-    #     new_ones = bin(score)[2:].count("1")
-    #     if new_ones > ones:
-    #         print(f"Maybe swap {g1} and {g2}, diff of {new_ones - ones}")
-    # # print(bin(score)[2:])
 
 
 def part_2(puzzle: PuzzleInput) -> Any:
@@ -158,65 +132,11 @@ def part_2(puzzle: PuzzleInput) -> Any:
         inputs = (frozenset((gate.in_1.gatename, gate.in_2.gatename)), gate.op)
         fullmap[inputs] = gate
 
-    # SWAPS:
-    swaps = ["gsd", "z26"]
-    swap_by_output("gsd", "z26", gates)
-    swap_by_output("qnf", "vpm", gates)
-    # [("z12", )]
-
     for i in range(1, 45):
         x = "x" + str(i).rjust(2, "0")
         y = "y" + str(i).rjust(2, "0")
         z = "z" + str(i).rjust(2, "0")
         # We should find an and gate and an xor gate
-        errors = []
-        x_y_xor = fullmap[(frozenset((x, y)), "XOR")]
-        if x_y_xor.out.gatename.startswith("z"):
-            errors.append(x_y_xor)
-
-        output = fullmap[(frozenset((x_y_xor.out.gatename, carry.out.gatename)), "XOR")]
-        if not output.out.gatename.startswith("z"):
-            print(f"Found incorrect output, swapping {output.out.gatename} and {z}")
-            swaps.append(z)
-            swaps.append(output.out.gatename)
-            swap_by_output(output.out.gatename, z, gates)
-
-        carry_int = fullmap[
-            (frozenset((x_y_xor.out.gatename, carry.out.gatename)), "AND")
-        ]
-        if carry_int.out.gatename.startswith("z"):
-            errors.append(carry_int)
-
-        x_y_and = fullmap[(frozenset((x, y)), "AND")]
-        if x_y_and.out.gatename.startswith("z"):
-            errors.append(x_y_and)
-
-        if errors:
-            import pudb
-
-            pudb.set_trace()
-            if len(errors) == 2:
-                errors[0].out, errors[1].out = errors[1].out, errors[0].out
-
-        carry = fullmap[
-            (frozenset((x_y_and.out.gatename, carry_int.out.gatename)), "OR")
-        ]
-        if carry.out.gatename.startswith("z"):
-            errors.append(carry)
-
-        if errors:
-            import pudb
-
-            pudb.set_trace()
-            if len(errors) == 2:
-                errors[0].out, errors[1].out = errors[1].out, errors[0].out
-
-        if carry.out.gatename.startswith("z"):
-            print(carry)
-            msg = "Found incorrect carry"
-            raise ValueError(msg)
-        if not output.out.gatename == z:
-            print("Something wrong at", x, y, z)
 
     # I solved this one semi-manually
     return "gsd,kth,qnf,tbt,vpm,z12,z26,z32"
