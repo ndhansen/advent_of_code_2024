@@ -23,7 +23,7 @@ dev = [
   "mypy",
   "ruff",
   "ipython",
-  "pygraphviz",
+  "pygraphviz @ git+https://github.com/openSUSE-Python/pygraphviz@4ba5226458e0c5f28ca6f5e1de08283978651141",
   "networkx",
   "tqdm",
   "sympy",
