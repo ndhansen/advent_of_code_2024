@@ -1,6 +1,6 @@
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["uv_build"]
+build-backend = "uv_build"
 
 [project]
 name = "aoc_2024"
@@ -8,13 +8,7 @@ version = "1.0.0"
 authors = [{ name = "Nicholas Hansen", email = "ndhansen@leskat.net" }]
 description = "Advent of Code 2024"
 requires-python = ">=3.13"
-dependencies = [
-  "parse",
-  "watchfiles",
-  "rich",
-  "regex",
-  "aoc @ {root:parent:uri}/advent_of_code_utils",
-]
+dependencies = ["parse", "watchfiles", "rich", "regex", "aoc"]
 
 [project.optional-dependencies]
 dev = [
@@ -39,8 +33,8 @@ strict = true
 module = ["parse"]
 ignore_missing_imports = true
 
-[tool.hatch.metadata]
-allow-direct-references = true
-
 [tool.pyright]
 extraPaths = ["../advent_of_code_utils/"]
+
+[tool.uv.sources]
+aoc = { path = "../advent_of_code_utils", editable = true }
